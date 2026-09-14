@@ -4,7 +4,7 @@ import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
 
 export const metadata: Metadata = {
-  title: "SAATH — You don't have to walk alone",
+  title: "SAATH - You don't have to walk alone",
   description:
     "Continuous, voluntary trauma-informed mental-health care and support for survivors. You don't have to walk alone.",
   manifest: "/manifest.json",

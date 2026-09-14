@@ -155,6 +155,94 @@ describe('Sahayak Pipeline & Dashboard Integration', () => {
     expect(alerts.some((a: any) => a.crisis)).toBe(true);
   });
 
+  it('handles safety clarifications and short replies in context without abruptly introducing case stage', async () => {
+    // 1. Normal case-related stress message
+    const caseStressReply = await sahayakService.generateSahayakReply({
+      message: 'I am really stressed about court and my next hearing.',
+      history: [],
+      caseDetails: { stage: 'Investigation', daysUntilHearing: 10 },
+    });
+    expect(caseStressReply).toMatch(/(hearing|court|case|in 10 days)/i);
+    expect(caseStressReply).not.toMatch(/^(I understand|That sounds difficult)/i);
+
+    // 2. Explicit self-harm message (via pipeline endpoint)
+    vi.spyOn(ml, 'analyzeText').mockResolvedValueOnce({
+      distressScore: 90,
+      recoveryScore: 10,
+      confidence: 0.95,
+      escalationProbability: 0.95,
+      modelName: 'saath-text-fusion-pipeline',
+      modelVersion: '1.0.0',
+      pipelineVersion: 'ml-api-analyze-text-v2',
+      signals: {},
+      contributingFactors: [],
+      crisis: true,
+      insufficientEvidence: false,
+      status: 'available',
+    });
+    const { token } = await connect();
+    const crisisRes = await request(app)
+      .post('/api/v1/ai/sahayak')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ message: 'I want to hurt myself.' });
+    expect(crisisRes.status).toBe(200);
+    expect(crisisRes.body.data.reply).toContain('safety matters right now more than anything else');
+    expect(crisisRes.body.data.reply).toContain('Safe Circle');
+
+    // 3. User clarifying they are not in immediate danger
+    const conversationAfterCrisis = [
+      { role: 'user' as const, text: 'I want to hurt myself.' },
+      { role: 'assistant' as const, text: crisisRes.body.data.reply },
+    ];
+    const clarificationReply = await sahayakService.generateSahayakReply({
+      message: 'I am not in immediate danger',
+      history: conversationAfterCrisis,
+      caseDetails: { stage: 'Investigation', docket: 'NHAA-RJ-2026-004821' },
+    });
+    // Should acknowledge the clarification and relief warmly
+    expect(clarificationReply).toMatch(/(clarifying|letting me know|glad.*not in immediate danger|safe)/i);
+    // Should NOT repeat emergency numbers, hospital, or safety disclaimers
+    expect(clarificationReply).not.toContain('hospital');
+    expect(clarificationReply).not.toContain('emergency number');
+    // Offers gentle next steps (talk about what's weighing or case help)
+    expect(clarificationReply).toMatch(/(weighing|case)/i);
+
+    // 4. User replying "okay" after a safety response
+    const replyAfterSafety = await sahayakService.generateSahayakReply({
+      message: 'okay',
+      history: conversationAfterCrisis,
+      caseDetails: { stage: 'Investigation' },
+    });
+    // Should stay in conversational context (checking in / taking things slowly)
+    expect(replyAfterSafety).toMatch(/(feeling|moment|slowly|checking in|right here)/i);
+    // Must NOT abruptly blurt out case stage
+    expect(replyAfterSafety).not.toContain('Your case is currently at the Investigation stage');
+
+    // 5. Short replies using previous conversation context
+    const conversationWithOffer = [
+      ...conversationAfterCrisis,
+      { role: 'user' as const, text: 'I am not in immediate danger' },
+      { role: 'assistant' as const, text: clarificationReply },
+    ];
+    // User replies "yes" to "Would you like to talk about what has been weighing on you..."
+    const followUpReply = await sahayakService.generateSahayakReply({
+      message: 'yes',
+      history: conversationWithOffer,
+      caseDetails: { stage: 'Investigation' },
+    });
+    expect(followUpReply).toMatch(/(heaviest|weighing|share|right here|listening)/i);
+    expect(followUpReply).not.toContain('Your case is currently at the Investigation stage');
+
+    // User replies "no" to general offer
+    const noReply = await sahayakService.generateSahayakReply({
+      message: 'no',
+      history: conversationWithOffer,
+      caseDetails: { stage: 'Investigation' },
+    });
+    expect(noReply).toMatch(/(okay|ready|pressure|right here)/i);
+    expect(noReply).not.toContain('Your case is currently at the Investigation stage');
+  });
+
   it('generates varied replies without repetitive opening phrases and avoids asking questions on every turn', async () => {
     // Test sequential conversation turns
     const conversation: Array<{ role: 'user' | 'assistant'; text: string }> = [];

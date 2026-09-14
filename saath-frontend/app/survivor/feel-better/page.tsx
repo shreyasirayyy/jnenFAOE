@@ -113,7 +113,7 @@ export default function FeelBetterPage() {
           <div className="max-w-2xl space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-bold uppercase tracking-[.2em] text-[#a7f3d0] backdrop-blur-md">
               <Sparkles size={13} className="text-[#a7f3d0]" />
-              TAARA · {t("common.notAlone", language).slice(0, 25)}
+              TAARA · {t("common.notAlone", language).slice(0, 28)}
             </div>
             <h2 className="font-display text-3xl leading-tight text-white md:text-4xl">
               {language === "Hindi"
