@@ -139,7 +139,7 @@ export function LiveSahayakShowcase({ id = "features" }: LiveSahayakShowcaseProp
 
           {/* Description */}
           <p className="mt-4 text-[15.5px] sm:text-[17px] leading-[1.6] text-[#46565a]">
-            Unpack what’s on your mind with our empathetic AI companion.
+            Unpack what's on your mind with our empathetic AI companion, Sahayak. It helps you process daily stress and navigate mild anxiety. 
           </p>
 
           {/* CTA Button */}
@@ -173,15 +173,11 @@ export function LiveSahayakShowcase({ id = "features" }: LiveSahayakShowcaseProp
                 </div>
 
                 {/* Active Tab (Gemini Chrome style) */}
-                <div className="flex items-center gap-1.5 rounded-lg border border-[#c8d3d0]/60 bg-white px-2.5 py-0.5 text-[11.5px] font-medium text-[#1c2b2e] shadow-2xs">
-                </div>
+                
               </div>
 
               {/* Status Pill */}
-              <div className="flex items-center gap-2">
-                <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 border border-[#c8d3d0]/50 text-[10.5px] font-medium text-[#46565a]">
-                </div>
-              </div>
+              
             </div>
 
             {/* 2. Sahayak In-App Header */}
@@ -189,8 +185,6 @@ export function LiveSahayakShowcase({ id = "features" }: LiveSahayakShowcaseProp
               <div className="flex items-center gap-2">
                 <p className="text-[12.5px] font-semibold text-[#1c2b2e]">Sahayak</p>
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#dcebdd]/70 px-1.5 py-0.2 text-[9.5px] font-medium text-[#0f766e]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#0f766e] animate-pulse" />
-                  Live
                 </span>
               </div>
             </div>
@@ -251,16 +245,7 @@ export function LiveSahayakShowcase({ id = "features" }: LiveSahayakShowcaseProp
                       </div>
 
                       {/* Interactive suggestion quick-reply chips */}
-                      <div className="flex flex-wrap gap-1.5 pt-0.5">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-[#0f766e]/30 bg-[#dcebdd]/50 px-2.5 py-0.5 text-[11px] font-medium text-[#0f766e]">
-                          
-                        </span>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-[#c8d3d0]/60 bg-white px-2.5 py-0.5 text-[11px] font-medium text-[#46565a]">
-                          
-                        </span>
-                      </div>
-
-                      <span className="block text-[10px] text-[#87938f] pl-1">Sahayak · 10:15 AM</span>
+                      <span className="block text-[10px] text-[#87938f] pl-1">Sahayak · 10:16 AM</span>
                     </div>
                   </div>
                 )}
