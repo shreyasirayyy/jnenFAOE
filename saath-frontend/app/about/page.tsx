@@ -79,7 +79,7 @@ export default function AboutPage() {
             </span>
             <span className="hidden h-4 w-px bg-[#c8d3d0] sm:inline" />
             <span className="hidden text-[11px] font-semibold tracking-wide text-[#61706d] sm:inline">
-              You Don&apos;t Have to Walk Alone
+              You Don't Have to Walk Alone
             </span>
           </Link>
 
@@ -102,12 +102,7 @@ export default function AboutPage() {
 
       {/* Hero Header */}
       <section className="relative z-20 mx-auto max-w-5xl px-5 pt-14 pb-16 text-center sm:pt-20 sm:pb-24">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#0f766e]/20 bg-[#dcebdd]/70 px-4 py-1.5 shadow-2xs backdrop-blur-xs">
-          <ShieldCheck size={14} className="text-[#0f766e]" />
-          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#0f766e]">
-            Protection & Governance Charter
-          </span>
-        </div>
+        
 
         <h1 className="mx-auto mt-6 max-w-4xl font-display text-4xl sm:text-6xl font-semibold tracking-tight text-[#172326] leading-[1.1]">
           Built from the ground up to <br />

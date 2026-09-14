@@ -1187,88 +1187,13 @@ app.post('/api/v1/ai/sahayak',requireAuth,body(z.object({message:z.string().min(
   if (mlAnalysis.crisis) {
     recordAlert({ victimToken: victimToken || 'unknown', caseReference: victimToken || 'unknown', reason: 'Sahayak ML pipeline detected crisis language.', source: 'sahayak', crisis: true, confidence: mlAnalysis.confidence });
     return ok(res, {
-      reply: "I'm really glad you told me. Your safety matters right now more than anything else. If you are in immediate danger, please contact your local emergency number or go to your nearest hospital. A counsellor from your Safe Circle has also been alerted.",
+      reply: "I hear how much pain you're carrying right now, and I'm really glad you reached out. Your safety matters right now more than anything else, and you don't have to carry this alone. If you feel at risk of hurting yourself or are in immediate danger, please contact your local emergency services or go to your nearest hospital. A counsellor from your Safe Circle has also been alerted to check in on you. I'm right here with you—would you like to take a slow breath together, or talk about what has been feeling heaviest?",
       supportAvailable: true,
     });
   }
 
-  // Step 3: Run 20-feature escalation prediction engine.
-  const escalationState = await generateEscalation(userId, victimToken, mlAnalysis);
-  const escalationResult = escalationState.status === 'available' ? escalationState.result : null;
-
-  const escalationPct = escalationResult?.escalation_probability ?? (mlAnalysis.escalationProbability !== null ? Math.round(mlAnalysis.escalationProbability * 100) : 20);
-  const riskLevel = escalationResult?.risk_level ?? (escalationPct >= 75 ? 'CRITICAL' : escalationPct >= 50 ? 'HIGH' : escalationPct >= 25 ? 'MODERATE' : 'LOW');
-
-  // Step 4: Persist check-in observation so longitudinal history accumulates correctly.
-  const checkinRecord = {
-    id: id(),
-    type: 'sahayak_chat',
-    victimToken,
-    textSubmitted: true,
-    ml: mlAnalysis,
-    createdAt: new Date().toISOString(),
-    analyticalState: mlAnalysis.status === 'unavailable' || mlAnalysis.insufficientEvidence ? 'insufficient_evidence' : 'scored',
-  };
-  record(`checkins:${userId}`, checkinRecord);
-  trackCheckinCompletion(record, id, { userId, victimToken, channel: 'sahayak' });
-  await updateBaseline(userId);
-
-  // Step 5: Update case record in store.cases so counsellor/admin caseloads reflect real scores.
-  if (caseRecord) {
-    caseRecord.riskLevel = riskLevel;
-    if (typeof mlAnalysis.distressScore === 'number') {
-      caseRecord.currentDistressScore = mlAnalysis.distressScore;
-    }
-    if (escalationPct !== null) {
-      caseRecord.predicted7dScore = escalationPct;
-    }
-  }
-
-  // Step 6: Persist rich assessment for counsellor and admin dashboards.
+  // Precompute case context for reply and assessments
   const daysUntilHearing = caseRecord?.nextHearingDate ? Math.max(0, Math.ceil((new Date(caseRecord.nextHearingDate).getTime() - Date.now()) / 86_400_000)) : null;
-  record('sahayak:assessments', {
-    id: id(),
-    victimToken,
-    caseId: caseRecord?.id,
-    signals: {
-      caseStage: caseRecord?.currentStage,
-      currentDistressScore: mlAnalysis.distressScore ?? latest?.ml?.distressScore,
-      previousDistressScore: latest?.ml?.distressScore,
-      distressChange: (typeof mlAnalysis.distressScore === 'number' && typeof latest?.ml?.distressScore === 'number') ? mlAnalysis.distressScore - latest.ml.distressScore : undefined,
-      mlStatus: mlAnalysis.status,
-      sentiment: mlAnalysis.signals?.sentiment as string | undefined,
-      emotion: mlAnalysis.signals?.emotion as string | undefined,
-      daysUntilHearing,
-    },
-    prediction: {
-      escalation_probability: escalationPct,
-      risk_level: riskLevel,
-      confidence: escalationResult?.confidence ?? mlAnalysis.confidence,
-      time_horizon: '7 days',
-      contributing_factors: escalationResult?.contributing_factors ?? mlAnalysis.contributingFactors.map(f => f.factor),
-      early_warning_signals: escalationResult?.early_warning_signals ?? [],
-      recommended_followup: escalationResult?.recommended_followup ?? 'Continue monitoring via check-ins',
-      warnings: [],
-      modelName: escalationResult ? 'gemini-escalation-20f' : 'saath-text-fusion-pipeline',
-      modelVersion: '1.0.0',
-      insufficientEvidence: mlAnalysis.insufficientEvidence ?? false,
-    },
-    createdAt: new Date().toISOString(),
-  });
-
-  if (escalationPct >= 75) {
-    recordAlert({
-      victimToken: victimToken || 'unknown',
-      caseReference: victimToken || 'unknown',
-      reason: 'Sahayak analysis indicates elevated escalation risk.',
-      source: 'sahayak',
-      requestedSupport: true,
-      confidence: escalationResult?.confidence ?? mlAnalysis.confidence,
-      metadata: { riskLevel },
-    });
-  }
-
-  // Step 7: Generate supportive, case-specific, non-repetitive conversational reply via Gemini.
   const assignedCounsellor = caseRecord?.assignedCounsellorId
     ? store.counsellors.find((c) => c.id === caseRecord.assignedCounsellorId)
     : undefined;
@@ -1290,6 +1215,89 @@ app.post('/api/v1/ai/sahayak',requireAuth,body(z.object({message:z.string().min(
     activeServices.push(`Rehabilitation (${caseRecord.rehabilitationStatus})`);
   }
 
+  // Step 3: Concurrently trigger the escalation pipeline in the background so the conversational reply is not delayed.
+  // All side-effects (check-in persistence, baseline update, case risk update, assessments, alerts) are preserved.
+  const escalationPipelinePromise = (async () => {
+    try {
+      const escalationState = await generateEscalation(userId, victimToken, mlAnalysis);
+      const escalationResult = escalationState.status === 'available' ? escalationState.result : null;
+
+      const escalationPct = escalationResult?.escalation_probability ?? (mlAnalysis.escalationProbability !== null ? Math.round(mlAnalysis.escalationProbability * 100) : 20);
+      const riskLevel = escalationResult?.risk_level ?? (escalationPct >= 75 ? 'CRITICAL' : escalationPct >= 50 ? 'HIGH' : escalationPct >= 25 ? 'MODERATE' : 'LOW');
+
+      // Persist check-in observation so longitudinal history accumulates correctly.
+      const checkinRecord = {
+        id: id(),
+        type: 'sahayak_chat',
+        victimToken,
+        textSubmitted: true,
+        ml: mlAnalysis,
+        createdAt: new Date().toISOString(),
+        analyticalState: mlAnalysis.status === 'unavailable' || mlAnalysis.insufficientEvidence ? 'insufficient_evidence' : 'scored',
+      };
+      record(`checkins:${userId}`, checkinRecord);
+      trackCheckinCompletion(record, id, { userId, victimToken, channel: 'sahayak' });
+      await updateBaseline(userId);
+
+      // Update case record in store.cases so counsellor/admin caseloads reflect real scores.
+      if (caseRecord) {
+        caseRecord.riskLevel = riskLevel;
+        if (typeof mlAnalysis.distressScore === 'number') {
+          caseRecord.currentDistressScore = mlAnalysis.distressScore;
+        }
+        if (escalationPct !== null) {
+          caseRecord.predicted7dScore = escalationPct;
+        }
+      }
+
+      // Persist rich assessment for counsellor and admin dashboards.
+      record('sahayak:assessments', {
+        id: id(),
+        victimToken,
+        caseId: caseRecord?.id,
+        signals: {
+          caseStage: caseRecord?.currentStage,
+          currentDistressScore: mlAnalysis.distressScore ?? latest?.ml?.distressScore,
+          previousDistressScore: latest?.ml?.distressScore,
+          distressChange: (typeof mlAnalysis.distressScore === 'number' && typeof latest?.ml?.distressScore === 'number') ? mlAnalysis.distressScore - latest.ml.distressScore : undefined,
+          mlStatus: mlAnalysis.status,
+          sentiment: mlAnalysis.signals?.sentiment as string | undefined,
+          emotion: mlAnalysis.signals?.emotion as string | undefined,
+          daysUntilHearing,
+        },
+        prediction: {
+          escalation_probability: escalationPct,
+          risk_level: riskLevel,
+          confidence: escalationResult?.confidence ?? mlAnalysis.confidence,
+          time_horizon: '7 days',
+          contributing_factors: escalationResult?.contributing_factors ?? mlAnalysis.contributingFactors.map(f => f.factor),
+          early_warning_signals: escalationResult?.early_warning_signals ?? [],
+          recommended_followup: escalationResult?.recommended_followup ?? 'Continue monitoring via check-ins',
+          warnings: [],
+          modelName: escalationResult ? 'gemini-escalation-20f' : 'saath-text-fusion-pipeline',
+          modelVersion: '1.0.0',
+          insufficientEvidence: mlAnalysis.insufficientEvidence ?? false,
+        },
+        createdAt: new Date().toISOString(),
+      });
+
+      if (escalationPct >= 75) {
+        recordAlert({
+          victimToken: victimToken || 'unknown',
+          caseReference: victimToken || 'unknown',
+          reason: 'Sahayak analysis indicates elevated escalation risk.',
+          source: 'sahayak',
+          requestedSupport: true,
+          confidence: escalationResult?.confidence ?? mlAnalysis.confidence,
+          metadata: { riskLevel },
+        });
+      }
+    } catch (err) {
+      console.error('[Sahayak] Background escalation processing failed:', err instanceof Error ? err.stack || err.message : String(err));
+    }
+  })();
+
+  // Step 4: Generate supportive, case-specific, non-repetitive conversational reply immediately once ML inputs are available.
   const reply = await generateSahayakReply({
     message: req.body.message,
     caseDetails: caseRecord ? {
@@ -1323,10 +1331,14 @@ app.post('/api/v1/ai/sahayak',requireAuth,body(z.object({message:z.string().min(
     })),
     history: req.body.conversation,
     mlAnalysis,
-    contributingFactors: escalationResult?.contributing_factors ?? mlAnalysis.contributingFactors.map(f => f.factor),
+    contributingFactors: mlAnalysis.contributingFactors.map(f => f.factor),
   });
 
-  return ok(res, { reply, supportAvailable: true });
+  // Step 5: Return conversational reply to the client immediately.
+  ok(res, { reply, supportAvailable: true });
+
+  // Step 6: Await the background escalation pipeline to ensure completion without blocking the client response.
+  await escalationPipelinePromise;
 }));
 
 

@@ -199,6 +199,54 @@ function fallbackReply(input: SahayakInput): string {
     return 'There are currently no active support services recorded for your case.';
   }
 
+  // Safety Clarifications (e.g. "I am not in immediate danger", "I'm safe right now", "not hurting myself", "not in danger")
+  if (/(not in (immediate |any )?danger|not going to hurt myself|not hurting myself|am safe|i am safe|i'm safe|don't want to hurt myself|no danger|safe right now|not suicidal|not in danger)/i.test(text)) {
+    if (turn === 0 || askedQuestionRecently) {
+      return "Thank you for clarifying. I'm really glad to know you're not in immediate danger. We can take this one gentle step at a time. Would you like to talk about what has been weighing on you, or would you prefer help with something related to your case?";
+    }
+    if (turn === 1) {
+      return "Thank you for letting me know you're safe. That brings some relief. Whenever you feel ready, we can talk through whatever is on your mind, or look at your case details together.";
+    }
+    return "I appreciate you clarifying that you are safe right now. There's no rush or pressure here. Would you like to share what's been feeling heaviest lately, or focus on something practical regarding your case?";
+  }
+
+  // Short context-dependent responses (e.g., "okay", "yes", "no", "hmm", "sure", "alright")
+  const isShortReply = /^(ok|okay|k|yes|yeah|yep|sure|no|nope|hmm|hm|alright|fine|thanks|thank you)[\s.!?,]*$/i.test(text.trim());
+  if (isShortReply) {
+    const lastAsstText = lastAssistant?.text.toLowerCase() ?? '';
+    const affirmative = /^(ok|okay|k|yes|yeah|yep|sure|alright|fine)[\s.!?,]*$/i.test(text.trim());
+    const negative = /^(no|nope)[\s.!?,]*$/i.test(text.trim());
+
+    // If the previous message offered to talk about what's weighing on them vs case help
+    if (lastAsstText.includes('weighing on you') || lastAsstText.includes('related to your case')) {
+      if (affirmative) {
+        return "I'm right here with you. Take all the time you need—what has been feeling heaviest today, or would you like to look into something about your case?";
+      }
+      if (negative) {
+        return "That is completely okay. You don't have to talk about anything until you feel ready. I'm right here with you.";
+      }
+    }
+    // If the previous message was an emergency crisis response
+    if ((lastAsstText.includes('safety matters') || lastAsstText.includes('safe circle') || lastAsstText.includes('immediate danger')) && !lastAsstText.includes('not in immediate danger')) {
+      return "Thank you for checking in with me. How are you feeling in this moment? We can take things as slowly as you need.";
+    }
+    if (lastAsstText.includes('breath') || lastAsstText.includes('grounding')) {
+      if (affirmative) {
+        return "Let's take a slow, gentle breath in... and release it softly. Take all the time you need.";
+      }
+      if (negative) {
+        return "That is completely fine. We can just sit quietly together or talk about anything else on your mind.";
+      }
+    }
+    if (affirmative) {
+      return "I'm listening whenever you want to share more. We can take things one step at a time.";
+    }
+    if (negative) {
+      return "Understood. There is no pressure to explain or talk about anything right now. I'm right here with you.";
+    }
+    return "I'm right here with you. Take whatever time you need.";
+  }
+
   // Court / Case / Legal proceedings
   if (/(hearing|court|case|legal|docket|lawyer|judge|advocate|investigation|fir)/i.test(text)) {
     if (typeof input.caseDetails?.daysUntilHearing === 'number') {
@@ -242,8 +290,8 @@ function fallbackReply(input: SahayakInput): string {
     return 'Has the difficulty sleeping been affecting how you manage your day-to-day energy lately?';
   }
 
-  // Safety / Fear / Threats
-  if (/(unsafe|threat|danger|scared|afraid|threaten|hurt|fear|panic)/i.test(text)) {
+  // Safety / Fear / Threats (only when genuinely expressing distress/threat, not clarifying safety)
+  if (/(unsafe|threat|danger|scared|afraid|threaten|hurt|fear|panic)/i.test(text) && !/(not|no)\s+(in\s+)?(danger|unsafe|threat)/i.test(text)) {
     if (turn === 0) {
       return 'Your physical safety and peace of mind matter above all else. If you ever feel in immediate danger, please reach out to emergency contacts or your designated Safe Circle right away.';
     }
@@ -261,8 +309,8 @@ function fallbackReply(input: SahayakInput): string {
     return 'Having people who understand around you makes a huge difference. Is there anyone in your circle whom you feel most comfortable talking to right now?';
   }
 
-  // Case stage context
-  if (input.caseDetails?.stage) {
+  // Case stage context - ONLY when relevant to case, court, or hearing inquiries
+  if (input.caseDetails?.stage && /(case|court|hearing|stage|status|investigation|trial|docket)/i.test(text)) {
     if (turn === 0 || askedQuestionRecently) {
       return `Your case is currently at the ${input.caseDetails.stage} stage, which naturally brings its own pace and uncertainties. Be gentle with yourself as you navigate it.`;
     }
@@ -388,13 +436,25 @@ CRITICAL CONVERSATIONAL VARIETY & TONE RULES:
    - Quiet presence: A gentle reminder that you are here and there is no rush or pressure to explain anything.
    - Clarifying question: Reserved only for rare moments where knowing more is truly helpful.
 
-4. NO PARROTING: Do not repeat facts the survivor just told you back to them (e.g. if they say "I can't sleep", do not say "You can't sleep because...").
+4. SAFETY CLARIFICATIONS (CRITICAL):
+   - When the user clarifies that they are safe or NOT in immediate danger (e.g. "I am not in immediate danger", "I'm safe right now", "I'm okay now", "not in danger"):
+     1. Acknowledge and validate their clarification with warmth and relief (e.g., "Thank you for clarifying. I'm glad to know you're safe right now and not in immediate danger.").
+     2. NEVER repeat emergency numbers, hospital advice, or safe circle disclaimers after they have clarified they are not in danger.
+     3. Offer gentle next steps: ask if they want to talk about what has been weighing on them, or if they would prefer help with something related to their case.
 
-5. BREVITY & TONE:
-   Keep responses concise (1 to 3 short sentences). Speak with human warmth, steadiness, and dignity.
+5. SHORT REPLIES & CONVERSATIONAL CONTEXT:
+   - When the user gives a short response like "okay", "yes", "no", "hmm", "sure", or "alright":
+     1. Always use the previous assistant question or statement from recent conversation history to understand what they are confirming or responding to.
+     2. NEVER abruptly introduce case-stage facts (such as "Your case is in the Investigation stage") unless the conversation was already actively discussing case status.
+     3. If they are saying "okay" or "yes" after a safety or support check-in, meet them where they are with gentle presence and invite them to share what's on their mind at their own pace.
 
-6. STRICT CONFIDENTIALITY & SAFETY:
-   NEVER mention internal metrics, distress scores, risk levels, prediction percentages, models, clinical assessments, tokens, or monitoring algorithms. If immediate self-harm or acute physical danger is expressed, respond with urgent empathetic care and remind them that human support is available immediately.${caseRecordSection}${contextSection}`;
+6. RELEVANCE OF CASE DETAILS:
+   - Mention case details (such as hearing date, investigation stage, or assigned counsellor) ONLY when relevant to what the user explicitly asks about or when discussing court/case stress. Never volunteer case stage information out of context.
+
+7. NO PARROTING: Do not repeat facts the survivor just told you back to them.
+
+8. BREVITY & TONE:
+   Keep responses concise (1 to 3 short sentences). Speak with human warmth, steadiness, and dignity. Not like a generic chatbot disclaimer. Never diagnose. Never expose distress scores, internal model outputs, confidence values, or implementation details.${caseRecordSection}${contextSection}`;
 
   // Format multi-turn conversation for Gemini API:
   // Must alternate user -> model -> user, starting with 'user'.

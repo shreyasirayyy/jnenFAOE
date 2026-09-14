@@ -196,8 +196,10 @@ const externalMlResult = z.object({
 export async function analyzeText(input:{victimToken:string;text:string;language?:string}):Promise<MlResult>{
   const localIndicators = extractIndicatorTags(input.text);
   if(env.ML_SERVICE_URL){
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3_000);
     try {
-      const response=await fetch(`${env.ML_SERVICE_URL}/ml/analyze-text`,{method:'POST',headers:{'content-type':'application/json','x-api-key':env.ML_API_KEY??''},body:JSON.stringify({victim_token:input.victimToken,text:input.text,language:input.language??'en'})});
+      const response=await fetch(`${env.ML_SERVICE_URL}/ml/analyze-text`,{method:'POST',signal:controller.signal,headers:{'content-type':'application/json','x-api-key':env.ML_API_KEY??''},body:JSON.stringify({victim_token:input.victimToken,text:input.text,language:input.language??'en'})});
       if(!response.ok){
         const body=await response.text().catch(()=>'');
         console.error(`[ML] /ml/analyze-text returned HTTP ${response.status}:`,body.slice(0,200));
@@ -210,8 +212,10 @@ export async function analyzeText(input:{victimToken:string;text:string;language
         indicators: parsed.indicators ?? localIndicators,
       };
     } catch(err){
-      console.error('[ML] /ml/analyze-text request failed:',err instanceof Error?err.message:String(err));
+      console.error('[ML] /ml/analyze-text request failed or timed out:',err instanceof Error?err.message:String(err));
       return unavailable(input);
+    } finally {
+      clearTimeout(timeout);
     }
   }
   if(env.AI_PROVIDER.toLowerCase()==='groq'&&env.AI_API_KEY){ try { return await groqAnalyze(input); } catch(err){ console.error('[ML] Groq fallback failed:',err instanceof Error?err.message:String(err)); return unavailable(input); } }
