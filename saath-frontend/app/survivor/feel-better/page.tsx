@@ -108,7 +108,7 @@ export default function FeelBetterPage() {
       </div>
 
       {/* Prominent, dedicated TAARA Quiet Space banner */}
-      <div className="mt-10 overflow-hidden rounded-[30px] border border-deep-teal/20 bg-gradient-to-br from-[#0c4e48] via-[#0f766e] to-[#16554f] p-8 text-white shadow-[0_20px_45px_rgba(15,118,110,.25)] md:p-10">
+      <div className="mt-10 overflow-hidden rounded-[30px] border border-deep-teal/20 bg-linear-to-br from-[#0c4e48] via-[#0f766e] to-[#16554f] p-8 text-white shadow-[0_20px_45px_rgba(15,118,110,.25)] md:p-10">
         <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
           <div className="max-w-2xl space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-bold uppercase tracking-[.2em] text-[#a7f3d0] backdrop-blur-md">
