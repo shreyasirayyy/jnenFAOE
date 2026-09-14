@@ -80,7 +80,7 @@ export function LiveVoiceCheckInShowcase({ id = "voice-feature" }: LiveVoiceChec
           // Brief pause after finishing speech before processing
           timer = setTimeout(() => {
             setStep(2);
-          }, 450);
+          }, 45);
         }
       }, 70);
 
@@ -129,43 +129,25 @@ export function LiveVoiceCheckInShowcase({ id = "voice-feature" }: LiveVoiceChec
                 </div>
 
                 {/* Active Tab */}
-                <div className="flex items-center gap-1.5 rounded-lg border border-[#c8d3d0]/60 bg-white px-2.5 py-0.5 text-[11.5px] font-medium text-[#1c2b2e] shadow-2xs">
-                  <Mic size={12} className="text-[#0f766e]" />
-                  <span>Voice Check-in</span>
-                  <X size={11} className="ml-0.5 text-[#87938f]" />
-                </div>
+                
               </div>
 
               {/* Status Pill */}
               <div className="flex items-center gap-2">
-                <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 border border-[#c8d3d0]/50 text-[10.5px] font-medium text-[#46565a]">
-                  <Lock size={10} className="text-[#0f766e]" />
-                  <span>saath.app/voice</span>
-                </div>
+                
               </div>
             </div>
 
             {/* 2. In-App Header */}
             <div className="flex items-center justify-between border-b border-[#c8d3d0]/40 bg-white px-4 py-2 sm:px-4.5">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0f766e] text-white shadow-xs">
-                  <Volume2 size={14} />
-                </div>
+                
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-[12.5px] font-semibold text-[#1c2b2e]">Voice Check-in</p>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#dcebdd]/70 px-1.5 py-0.2 text-[9.5px] font-medium text-[#0f766e]">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0f766e] animate-pulse" />
-                      Live
-                    </span>
                   </div>
-                  <p className="text-[10.5px] text-[#61706d]">Acoustic & sentiment analysis · Confidential</p>
                 </div>
               </div>
-
-              <span className="hidden sm:inline-block rounded-full bg-[#f4f6ec] px-2.5 py-0.5 text-[10.5px] font-medium text-[#46565a]">
-                Direct to counsellor
-              </span>
             </div>
 
             {/* 3. Live Voice Interactive Body (Compact Length-wise) */}
@@ -208,7 +190,7 @@ export function LiveVoiceCheckInShowcase({ id = "voice-feature" }: LiveVoiceChec
                   {/* Real-time transcript box */}
                   <div className="mx-auto max-w-xs rounded-xl border border-[#c8d3d0]/60 bg-white p-2.5 text-left shadow-2xs">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-[#61706d] flex items-center gap-1">
-                      <Sparkles size={11} className="text-[#0f766e]" /> Heard so far:
+                       Heard so far:
                     </p>
                     <p className="mt-1 text-[13px] font-medium text-[#1c2b2e] italic">
                       &ldquo;{liveTranscript}&rdquo;
@@ -255,11 +237,9 @@ export function LiveVoiceCheckInShowcase({ id = "voice-feature" }: LiveVoiceChec
                   {/* Wellbeing Signals Pill Grid */}
                   <div className="grid grid-cols-2 gap-1.5 max-w-sm mx-auto text-left text-[11px]">
                     <div className="flex items-center gap-1.5 rounded-lg bg-white border border-[#c8d3d0]/50 p-1.5">
-                      <Heart size={12} className="text-[#b86a59] shrink-0" />
                       <span><strong>Distress:</strong> Elevated (review needed)</span>
                     </div>
                     <div className="flex items-center gap-1.5 rounded-lg bg-white border border-[#c8d3d0]/50 p-1.5">
-                      <ShieldCheck size={12} className="text-[#0f766e] shrink-0" />
                       <span><strong>Counsellor:</strong> Alert flagged</span>
                     </div>
                   </div>
@@ -274,8 +254,8 @@ export function LiveVoiceCheckInShowcase({ id = "voice-feature" }: LiveVoiceChec
             {/* 4. Footer status bar */}
             <div className="border-t border-[#c8d3d0]/60 bg-white px-4 py-2 flex items-center justify-between text-[11px] text-[#87938f]">
               <div className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#0f766e]" />
-                <span>Microphone status: Encrypted</span>
+                
+                
               </div>
               <span className="font-medium text-[#0f766e]">
                 {step >= 3 ? "Delivered ✓" : step === 1 ? "Recording..." : "Ready"}

@@ -142,43 +142,27 @@ export function LiveCaseTrackingShowcase({ id = "case-tracking-feature" }: LiveC
                 </div>
 
                 {/* Active Tab */}
-                <div className="flex items-center gap-1.5 rounded-lg border border-[#c8d3d0]/60 bg-white px-2.5 py-0.5 text-[11.5px] font-medium text-[#1c2b2e] shadow-2xs">
-                  <Scale size={12} className="text-[#0f766e]" />
-                  <span>My Case</span>
-                  <X size={11} className="ml-0.5 text-[#87938f]" />
-                </div>
               </div>
 
               {/* Status Pill */}
               <div className="flex items-center gap-2">
-                <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 border border-[#c8d3d0]/50 text-[10.5px] font-medium text-[#46565a]">
-                  <Lock size={10} className="text-[#0f766e]" />
-                  <span>saath.app/case</span>
-                </div>
               </div>
             </div>
 
             {/* 2. In-App Header */}
             <div className="flex items-center justify-between border-b border-[#c8d3d0]/40 bg-white px-4 py-2 sm:px-4.5">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0f766e] text-white shadow-xs">
-                  <FileText size={14} />
-                </div>
+                
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-[12.5px] font-semibold text-[#1c2b2e]">Docket: NDLS/2026/089</p>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#dcebdd]/70 px-1.5 py-0.2 text-[9.5px] font-medium text-[#0f766e]">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0f766e] animate-pulse" />
-                      Active
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#dcebdd]/70 px-1.5 py-0.2 text-[9.5px] font-medium text-[#0f766e]"> 
                     </span>
                   </div>
-                  <p className="text-[10.5px] text-[#61706d]">Fast-Track Special Court · Verified Case</p>
-                </div>
+                  </div>
               </div>
 
-              <span className="hidden sm:inline-block rounded-full bg-[#f4f6ec] px-2.5 py-0.5 text-[10.5px] font-medium text-[#46565a]">
-                Stage 2 of 5
-              </span>
+              
             </div>
 
             {/* 3. Main Interactive Body (Compact Length-wise) */}
@@ -234,9 +218,7 @@ export function LiveCaseTrackingShowcase({ id = "case-tracking-feature" }: LiveC
                     <h3 className="text-[12px] sm:text-[12.5px] font-bold uppercase tracking-[0.1em] text-[#1c2b2e]">
                       YOUR CASE JOURNEY
                     </h3>
-                    <p className="mt-0.5 text-[11.5px] text-[#61706d]">
-                      Cases move through stages. Each step means progress.
-                    </p>
+                    
                   </div>
 
                   {/* 5-Stage Timeline Bar */}
@@ -306,8 +288,6 @@ export function LiveCaseTrackingShowcase({ id = "case-tracking-feature" }: LiveC
             {/* 4. Footer status bar */}
             <div className="border-t border-[#c8d3d0]/60 bg-white px-4 py-2 flex items-center justify-between text-[11px] text-[#87938f]">
               <div className="flex items-center gap-1.5">
-                <ShieldCheck size={13} className="text-[#0f766e]" />
-                <span>Zero forced reporting · 100% survivor consent</span>
               </div>
               <span className="font-medium text-[#0f766e]">
                 {step >= 2 ? "Live Timeline" : "Case Overview"}

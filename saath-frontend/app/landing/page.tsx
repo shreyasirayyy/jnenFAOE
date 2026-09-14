@@ -4,6 +4,7 @@ import { HeroSupportPathsReveal } from "@/components/landing/HeroSupportPathsRev
 import { LiveSahayakShowcase } from "@/components/landing/LiveSahayakShowcase";
 import { LiveVoiceCheckInShowcase } from "@/components/landing/LiveVoiceCheckInShowcase";
 import { LiveCaseTrackingShowcase } from "@/components/landing/LiveCaseTrackingShowcase";
+// import { HumanSupportScrollSection } from "@/components/landing/HumanSupportScrollSection";
 import {
   ArrowRight,
   Lock,
@@ -93,6 +94,18 @@ export default function LandingPage() {
                 >
                   Privacy
                 </a>
+                <a
+                  href="#human-connection"
+                  className="saath-nav-link text-[13px] sm:text-[13.5px] font-medium tracking-[0.01em] text-[#46565a] transition-colors duration-200"
+                >
+                  Human Connection
+                </a>
+                <Link
+                  href="/about"
+                  className="saath-nav-link text-[13px] sm:text-[13.5px] font-medium tracking-[0.01em] text-[#46565a] transition-colors duration-200"
+                >
+                  About
+                </Link>
               </div>
             </div>
 
@@ -232,7 +245,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── HUMAN SUPPORT ── */}
-      <section className="relative z-20 mx-auto max-w-7xl px-6 py-16 sm:px-10 sm:py-20">
+      <section id="human-connection" className="relative z-20 mx-auto max-w-7xl px-6 py-16 sm:px-10 sm:py-20 scroll-mt-20">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0f766e]">Human connection</p>
@@ -265,8 +278,8 @@ export default function LandingPage() {
 
           <div className="rounded-2xl border border-[#c8d3d0]/60 bg-[#162924] p-8 text-white sm:p-10">
             <div className="flex items-center gap-2.5 text-[#7faf86]">
-              <HeartHandshake size={20} />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.15em]">Compassionate cadence</span>
+              
+              
             </div>
             <h3
               className="mt-4 font-normal text-white leading-snug"
@@ -334,7 +347,7 @@ export default function LandingPage() {
               href="tel:112"
               className="inline-flex items-center gap-2 rounded-full bg-[#b86a59] px-5 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#a05449]"
             >
-              <PhoneCall size={12} /> National emergency: 112
+               National emergency: 112
             </a>
             <a
               href="tel:14566"
@@ -349,7 +362,7 @@ export default function LandingPage() {
       {/* â”€â”€ FINAL CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="relative z-20 mx-auto max-w-7xl px-6 py-16 sm:px-10 sm:py-20 border-t border-[#c8d3d0]/50">
         <div className="rounded-2xl bg-[#0f766e] p-10 text-center sm:p-14">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#dcebdd]/70">When you're ready</p>
+          
           <h2
             className="mx-auto mt-3 max-w-lg font-normal text-white leading-[1.1]"
             style={{
@@ -357,7 +370,7 @@ export default function LandingPage() {
               fontSize: "clamp(1.9rem, 4vw, 3rem)",
             }}
           >
-            Support that <em style={{ fontStyle: "italic", color: "#dcebdd" }}>stays</em> with you.
+            Support that stays with you.
           </h2>
           <p className="mx-auto mt-4 max-w-md text-[14px] leading-[1.65] text-white/75">
             Move forward at your own pace, with a space built around dignity, privacy and genuine human care.
